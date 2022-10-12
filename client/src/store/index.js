@@ -106,6 +106,18 @@ export const useGlobalStore = () => {
                 return store;
         }
     }
+    store.createNewList = () => {
+        async function asyncCreateNewList(){
+            let playlist = {name: 'Untitled', songs: []};
+            let response = await api.createNewList(playlist);
+            if (response.data.success) {
+                playlist = response.data.playlist;
+                storeReducer({type: GlobalStoreActionType.CREATE_NEW_LIST, payload: playlist});
+                store.history.push("/playlist/" + playlist._id);
+            }
+        }
+        asyncCreateNewList();
+    }
     // THESE ARE THE FUNCTIONS THAT WILL UPDATE OUR STORE AND
     // DRIVE THE STATE OF THE APPLICATION. WE'LL CALL THESE IN 
     // RESPONSE TO EVENTS INSIDE OUR COMPONENTS.

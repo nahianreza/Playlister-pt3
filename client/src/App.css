@@ -104,6 +104,14 @@ body {
 
 #add-list-button {
   float:left;
+  background-color: var(--swatch-primary);
+  border-radius: 5pt;
+  border: #999999 1pt solid;
+}
+
+#add-list-button:hover {
+  cursor: pointer;
+  background-color: #999999;
 }
 
 .list-card, .selected-list-card, .unselected-list-card {
@@ -124,6 +132,10 @@ body {
   cursor: pointer;
   background-color: var(--swatch-contrast);
   color:white;
+}
+#playlist-selector-heading {
+  font-size: 40pt;
+  border-bottom:var(--swatch-accent) dotted 2pt;
 }
 
 .selected-list-card {
