@@ -21,6 +21,6 @@ import jsTPS_Transaction from "../common/jsTPS.js"
     
     undoTransaction() {
         let index = this.store.currentList.songs.length - 1;
-        this.store.deleteSong(index);
+        this.store.removeSong(index);
     }
 }
