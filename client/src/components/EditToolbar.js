@@ -32,6 +32,7 @@ function EditToolbar() {
             <input
                 type="button"
                 id='add-song-button'
+                onClick={store.addSongTransaction}
                 disabled={editStatus}
                 value="+"
                 className={enabledButtonClass}

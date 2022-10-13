@@ -1,3 +1,4 @@
+
 const Playlist = require('../models/playlist-model')
 /*
     This is our back-end API. It provides all the data services
@@ -86,10 +87,58 @@ getPlaylistPairs = async (req, res) => {
         }
     }).catch(err => console.log(err))
 }
+deleteListByid = async (req, res) => {
+    await Playlist.deleteOne({ _id: req.params.id }, (err, list) => {
+        if (err) {
+            return res.status(400).json({ success: false, error: err })
+        }
 
+        return res.status(200).json({ success: true, playlist: list })
+    }).catch(err => console.log(err))
+}
+updateListByid = async (req, res) => {
+    const body = req.body
+    console.log("updateListByid: " + JSON.stringify(body));
+    if (!body) {
+        return res.status(400).json({
+            success: false,
+            error: 'You must provide a body to update',
+        })
+    }
+    Playlist.findOne({ _id: req.params.id }, (err, playlist) => {
+        if (err) {
+            return res.status(404).json({
+                err,
+                message: 'list not found!',
+            })
+        }
+        playlist.name = body.name
+        playlist.songs = body.songs
+        playlist
+            .save()
+            .then(() => {
+                console.log("SUCCESS!!!");
+                return res.status(200).json({
+                    success: true,
+                    id: playlist._id,
+                    message: 'Playlist updated!',
+                })
+            })
+            .catch(error => {
+                console.log("FAILURE: " + JSON.stringify(error));
+                return res.status(404).json({
+                    error,
+                    message: 'Playlist not updated!',
+                })
+            })
+    })
+}
 module.exports = {
     createPlaylist,
     getPlaylists,
     getPlaylistPairs,
-    getPlaylistById
+    getPlaylistById,
+    deleteListByid,
+    updateListByid
+
 }

@@ -1,6 +1,7 @@
 import { createContext, useState } from 'react'
 import jsTPS from '../common/jsTPS'
 import api from '../api'
+import AddSong_Transaction from '../Transactions/AddSong_Transaction';
 export const GlobalStoreContext = createContext({});
 /*
     This is our global data store. Note that it uses the Flux design pattern,
@@ -31,7 +32,7 @@ export const useGlobalStore = () => {
         idNamePairs: [],
         currentList: null,
         newListCounter: 0,
-        listNameActive: false
+        listNameActive: false,
     });
 
     // HERE'S THE DATA STORE'S REDUCER, IT MUST
@@ -81,7 +82,8 @@ export const useGlobalStore = () => {
                     idNamePairs: store.idNamePairs,
                     currentList: null,
                     newListCounter: store.newListCounter,
-                    listNameActive: false
+                    listNameActive: false,
+                    listMarkedForDeletion: payload
                 });
             }
             // UPDATE A LIST
@@ -162,7 +164,22 @@ export const useGlobalStore = () => {
             payload: {}
         });
     }
-
+    store.addSongTransaction= () =>{
+        let transaction = new AddSong_Transaction(store);
+        tps.addTransaction(transaction);
+    }
+    store.addSong = () =>{
+        async function asyncAddSong(){
+            let song = {title: 'Untitled', artist: 'Unknown' , youtubeId: "dQw4w9WgXcQ" };
+            let newList = store.currentList;
+            newList.songs.push(song);
+            let response = await api.updateListByid(store.currentList._id, newList);
+            if(response.data.success){
+                store.setCurrentList(response.data.id);
+            }
+        }
+        asyncAddSong();
+    }
     // THIS FUNCTION LOADS ALL THE ID, NAME PAIRS SO WE CAN LIST ALL THE LISTS
     store.loadIdNamePairs = function () {
         async function asyncLoadIdNamePairs() {
@@ -215,6 +232,27 @@ export const useGlobalStore = () => {
             payload: null
         });
     }
+    store.showDeleteListModal = (idNamePair) => {
+        let modal = document.getElementById('delete-modal');
+        storeReducer({type: GlobalStoreActionType.MARK_LIST_FOR_DELETION, payload: idNamePair})
+        modal.classList.add('is-visible');
+    }
+
+    store.hideDeleteListModal = () => {
+        let modal = document.getElementById('delete-modal');
+        modal.classList.remove('is-visible');
+    }
+
+    store.deleteMarkedList = () => {
+        async function asyncDeleteMarkedList() {
+            let response = await api.deleteListById(store.listMarkedForDeletion._id);
+            if (response.data.success){
+                store.loadIdNamePairs();
+            }
+        }
+        asyncDeleteMarkedList();
+    }
+
 
     // THIS GIVES OUR STORE AND ITS REDUCER TO ANY COMPONENT THAT NEEDS IT
     return { store, storeReducer };

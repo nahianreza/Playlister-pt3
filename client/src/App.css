@@ -108,6 +108,13 @@ body {
   border-radius: 5pt;
   border: #999999 1pt solid;
 }
+#add-song-button {
+  font-size: 50.9px;
+}
+#close-button {
+  font-size: 44px;
+}
+  
 
 #add-list-button:hover {
   cursor: pointer;
@@ -208,7 +215,7 @@ input {
 
 .modal-header,
 .modal-footer {
-  background: var(--lightgray);
+  background: lightgray;
 }
 
 .modal-header {
@@ -236,11 +243,11 @@ input {
   font-size: 24pt;
 }
 
-#close-modal-button {
+.close-modal-button {
   float:right;
 }
 
-#confirm-cancel-container {
+.confirm-cancel-container {
   text-align:center;
 }
 
