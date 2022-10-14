@@ -3,6 +3,7 @@ import jsTPS from '../common/jsTPS'
 import api from '../api'
 import AddSong_Transaction from '../Transactions/AddSong_Transaction'
 import RemoveSong_Transaction from '../Transactions/RemoveSong_Transaction'
+import MoveSong_Transaction from '../Transactions/MoveSong_Transaction'
 export const GlobalStoreContext = createContext({});
 /*
     This is our global data store. Note that it uses the Flux design pattern,
@@ -171,6 +172,7 @@ export const useGlobalStore = () => {
 
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
+        tps.clearAllTransactions();
         storeReducer({
             type: GlobalStoreActionType.CLOSE_CURRENT_LIST,
             payload: {}
@@ -310,6 +312,41 @@ export const useGlobalStore = () => {
             store.updateCurrentList();
         }
         asyncInsertSong();
+    }
+    store.addMoveItemTransaction = function (start, end) {
+        let transaction = new MoveSong_Transaction(store, start, end);
+        tps.addTransaction(transaction);
+    }
+
+    store.moveItem = function (start, end) {
+        if (start < end) {
+            let temp = store.currentList.songs[start];
+            for (let i = start; i < end; i++) {
+                store.currentList.songs[i] = store.currentList.songs[i + 1];
+            }
+            store.currentList.songs[end] = temp;
+        }
+        else if (start > end) {
+            let temp = store.currentList.songs[start];
+            for (let i = start; i > end; i--) {
+                store.currentList.songs[i] = store.currentList.songs[i - 1];
+            }
+            store.currentList.songs[end] = temp;
+        }
+        store.updateCurrentList();
+    }
+
+    store.updateCurrentList = function() {
+        async function asyncUpdateCurrentList() {
+            const response = await api.updateListByid(store.currentList._id, store.currentList);
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_LIST,
+                    payload: store.currentList
+                });
+            }
+        }
+        asyncUpdateCurrentList();
     }
 
 
