@@ -127,11 +127,14 @@ body {
 }
   
 
-#add-list-button:hover {
+.playlister-button#add-list-button:hover {
   cursor: pointer;
   background-color: #999999;
 }
-
+.playlister-button-disabled#add-list-button:hover {
+  opacity: 0.25; 
+  cursor: not-allowed;
+}
 .list-card, .selected-list-card, .unselected-list-card {
   font-size: 18pt;
   margin: 10px;
@@ -159,7 +162,10 @@ body {
   display: flex;
   
 }
-
+.playlister-button-disabled:hover {
+  opacity: 0.25; 
+  cursor: not-allowed;
+}
 .selected-list-card {
   background-color: var(--swatch-accent);
   color: white;
@@ -180,6 +186,7 @@ input {
 
 .disabled {
   background-color: lightgray;
+  cursor: not-allowed;
 }
 
 .disabled:hover {

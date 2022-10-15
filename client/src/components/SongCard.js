@@ -72,6 +72,7 @@ function SongCard(props) {
                 id={"remove-song-" + index}
                 onClick={handleRemoveSong}
                 className="list-card-button"
+                disabled={store.buttonDisabled}
                 value={"\u2715"}
             />
         </div>
