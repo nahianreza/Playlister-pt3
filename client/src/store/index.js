@@ -4,6 +4,7 @@ import api from '../api'
 import AddSong_Transaction from '../Transactions/AddSong_Transaction'
 import RemoveSong_Transaction from '../Transactions/RemoveSong_Transaction'
 import MoveSong_Transaction from '../Transactions/MoveSong_Transaction'
+import EditSong_Transaction from '../Transactions/EditSong_Transaction'
 export const GlobalStoreContext = createContext({});
 /*
     This is our global data store. Note that it uses the Flux design pattern,
@@ -22,6 +23,7 @@ export const GlobalStoreActionType = {
     SET_CURRENT_LIST: "SET_CURRENT_LIST",
     SET_LIST_NAME_EDIT_ACTIVE: "SET_LIST_NAME_EDIT_ACTIVE",
     MARK_SONG_FOR_REMOVAL: "MARK_SONG_FOR_REMOVAL",
+    MARK_SONG_FOR_EDIT: "MARK_SONG_FOR_EDIT"
 }
 
 // WE'LL NEED THIS TO PROCESS TRANSACTIONS
@@ -99,6 +101,15 @@ export const useGlobalStore = () => {
 
                 });
             }
+            case GlobalStoreActionType.MARK_SONG_FOR_EDIT: {
+                return setStore({
+                    idNamePairs: store.idNamePairs,
+                    currentList: store.currentList,
+                    newListCounter: store.newListCounter,
+                    listNameActive: false,
+                    songMarkedForEdit: payload
+                });
+            }
             // UPDATE A LIST
             case GlobalStoreActionType.SET_CURRENT_LIST: {
                 return setStore({
@@ -143,10 +154,10 @@ export const useGlobalStore = () => {
         async function asyncChangeListName(id) {
             let response = await api.getPlaylistById(id);
             if (response.data.success) {
-                let playlist = response.data.playist;
+                let playlist = response.data.playlist;
                 playlist.name = newName;
                 async function updateList(playlist) {
-                    response = await api.updatePlaylistById(playlist._id, playlist);
+                    response = await api.updateListById(playlist._id, playlist);
                     if (response.data.success) {
                         async function getListPairs(playlist) {
                             response = await api.getPlaylistPairs();
@@ -169,7 +180,9 @@ export const useGlobalStore = () => {
         }
         asyncChangeListName(id);
     }
-
+    store.setIsListNameEditActive = () => {
+        storeReducer({type: GlobalStoreActionType.SET_LIST_NAME_EDIT_ACTIVE, payload: null});
+    }
     // THIS FUNCTION PROCESSES CLOSING THE CURRENTLY LOADED LIST
     store.closeCurrentList = function () {
         tps.clearAllTransactions();
@@ -184,10 +197,10 @@ export const useGlobalStore = () => {
     }
     store.addSong = () =>{
         async function asyncAddSong(){
-            let song = {title: 'Untitled', artist: 'Unknown' , youtubeId: "dQw4w9WgXcQ" };
+            let song = {title: 'Untitled', artist: 'Unknown' , youTubeId: "dQw4w9WgXcQ" };
             let newList = store.currentList;
             newList.songs.push(song);
-            let response = await api.updateListByid(store.currentList._id, newList);
+            let response = await api.updateListById(store.currentList._id, newList);
             if(response.data.success){
                 store.setCurrentList(response.data.id);
             }
@@ -256,7 +269,6 @@ export const useGlobalStore = () => {
         let modal = document.getElementById('delete-modal');
         modal.classList.remove('is-visible');
     }
-
     store.deleteMarkedList = () => {
         async function asyncDeleteMarkedList() {
             let response = await api.deleteListById(store.listMarkedForDeletion._id);
@@ -268,7 +280,7 @@ export const useGlobalStore = () => {
     }
     store.updateCurrentList = function() {
         async function asyncUpdateCurrentList() {
-            const response = await api.updateListByid(store.currentList._id, store.currentList);
+            const response = await api.updateListById(store.currentList._id, store.currentList);
             if (response.data.success) {
                 storeReducer({
                     type: GlobalStoreActionType.SET_CURRENT_LIST,
@@ -281,12 +293,17 @@ export const useGlobalStore = () => {
     store.removeMarkedSong = () => {
         store.addRemoveSongTransaction(store.songMarkedForRemoval, store.currentList.songs[store.songMarkedForRemoval]);
     }
+    store.editMarkedSong = (newSong) => {
+        let index = store.songMarkedForEdit;
+        let oldSong = store.currentList.songs[index];
+        let t = new EditSong_Transaction(store, index, newSong, oldSong);
+        tps.addTransaction(t);
+    }
 
     store.addRemoveSongTransaction = (index, song) => {
         let transaction = new RemoveSong_Transaction(store, index, song);
         tps.addTransaction(transaction);
     }
-
     store.removeSong = (index) => {
         async function asyncRemoveSong() {
             store.currentList.songs.splice(index, 1);
@@ -294,7 +311,6 @@ export const useGlobalStore = () => {
         }
         asyncRemoveSong();
     }
-
     store.showRemoveSongModal = (index) => {
         let modal = document.getElementById('remove-modal');
         storeReducer({type: GlobalStoreActionType.MARK_SONG_FOR_REMOVAL, payload: index})
@@ -303,6 +319,15 @@ export const useGlobalStore = () => {
 
     store.hideRemoveSongModal = () => {
         let modal = document.getElementById('remove-modal');
+        modal.classList.remove('is-visible');
+    }
+    store.showEditSongModal = (index) => {
+        let modal = document.getElementById('edit-modal');
+        storeReducer({type: GlobalStoreActionType.MARK_SONG_FOR_EDIT, payload: index})
+        modal.classList.add('is-visible');
+    }
+    store.hideEditSongModal = () => {
+        let modal = document.getElementById('edit-modal');
         modal.classList.remove('is-visible');
     }
 
@@ -335,10 +360,14 @@ export const useGlobalStore = () => {
         }
         store.updateCurrentList();
     }
+    store.editSong = (index, song) =>{
+        store.currentList.songs[index] = song;
+        store.updateCurrentList();
+    }
 
     store.updateCurrentList = function() {
         async function asyncUpdateCurrentList() {
-            const response = await api.updateListByid(store.currentList._id, store.currentList);
+            const response = await api.updateListById(store.currentList._id, store.currentList);
             if (response.data.success) {
                 storeReducer({
                     type: GlobalStoreActionType.SET_CURRENT_LIST,
